@@ -14,16 +14,22 @@ from datasets import load_dataset
 from transformers import Trainer, TrainingArguments
 from tokenizer import get_tokenizer
 from model import get_model
+import torch
+
+print("CUDA:", torch.cuda.is_available())
+print("Device:", torch.cuda.get_device_name(0))
+print("Using device:", torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
 def train():
     # Load IMDB dataset
     dataset = load_dataset("imdb")
     train_val = dataset["train"].train_test_split(test_size=0.2, stratify_by_column="label")
     
-    train_texts = train_val["train"]["text"]
-    train_labels = train_val["train"]["label"]
-    val_texts = train_val["test"]["text"]
-    val_labels = train_val["test"]["label"]
+    train_texts = list(train_val["train"]["text"])
+    train_labels = list(train_val["train"]["label"])
+
+    val_texts = list(train_val["test"]["text"])
+    val_labels = list(train_val["test"]["label"])
 
     tokenizer = get_tokenizer()
 
@@ -55,7 +61,7 @@ def train():
         num_train_epochs=3,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         save_strategy="steps",
         save_steps=500,
         logging_steps=50,
@@ -65,12 +71,11 @@ def train():
     )
 
     trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=val_dataset,
-        tokenizer=tokenizer
-    )
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+)
 
     # Trainer Features: training loop to iterate over dataset, evaluation, saves model periodically at intervals
 
