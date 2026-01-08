@@ -11,3 +11,7 @@ def health():
 @app.post("/predict", response_model=PredictResponse)
 def predict_sentiment(req: PredictRequest):
     return predict(req.text)
+
+@app.get("/")
+def root():
+    return {"service": "sentiment-api", "status": "running"}
